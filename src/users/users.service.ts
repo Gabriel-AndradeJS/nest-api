@@ -2,11 +2,15 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 
 @Injectable()
 export class UsersService {
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private readonly hashingService: HashingServiceProtocol
+    ) { }
 
     async finOneUser(id: number) {
         const user = await this.prisma.user.findFirst({
@@ -25,6 +29,8 @@ export class UsersService {
 
     async createUser(createUserDto: CreateUserDto) {
         try {
+            const passwordHash = await this.hashingService.hash(createUserDto.password);
+
             const userExists = await this.prisma.user.findUnique({
                 where: { email: createUserDto.email },
             })
@@ -37,7 +43,7 @@ export class UsersService {
                 data: {
                     name: createUserDto.name,
                     email: createUserDto.email,
-                    passwordHash: createUserDto.password,
+                    passwordHash: passwordHash,
                 },
                 select: {
                     id: true,
@@ -63,12 +69,20 @@ export class UsersService {
                 throw new HttpException('Usuario não encontrado!', HttpStatus.NOT_FOUND);
             }
 
+            const dataUser: {name?: string, passwordHash?: string} = {
+                name: updateUserDto.name ? updateUserDto.name : findUser.name,
+            };   
+            
+            if (updateUserDto.password) {
+                dataUser.passwordHash = await this.hashingService.hash(updateUserDto.password);
+            }
+
             const user = await this.prisma.user.update({
                 where: { id },
                 data: {
-                    name: updateUserDto.name ? updateUserDto.name : findUser.name,
+                    name: dataUser.name,
                     email: updateUserDto.email ? updateUserDto.email : findUser.email,
-                    passwordHash: updateUserDto.password ? updateUserDto.password : findUser.passwordHash,
+                    passwordHash: dataUser.passwordHash ? dataUser.passwordHash : findUser.passwordHash,
                 },
                 select: {
                     id: true,
