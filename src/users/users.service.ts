@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class UsersService {
@@ -11,6 +12,24 @@ export class UsersService {
         private prisma: PrismaService,
         private readonly hashingService: HashingServiceProtocol
     ) { }
+
+    async findAllUsers(paginationDto?: PaginationDto) {
+        const { limit = 10, offset = 0 } = paginationDto || {};
+
+        const users = await this.prisma.user.findMany({
+            take: limit,
+            skip: offset,
+            orderBy: {
+                createdAt: 'desc',
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+            }
+        });
+        return users;
+    }
 
     async finOneUser(id: number) {
         const user = await this.prisma.user.findFirst({
