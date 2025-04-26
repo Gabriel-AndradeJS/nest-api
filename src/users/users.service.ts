@@ -38,7 +38,6 @@ export class UsersService {
                 id: true,
                 name: true,
                 email: true,
-                tasks: true
             }
         })
         if (user) return user;
