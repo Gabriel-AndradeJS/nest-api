@@ -1,4 +1,4 @@
-import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import { createParamDecorator, ExecutionContext, Injectable } from "@nestjs/common";
 import { REQUEST_TOKEN_PAYLOAD_NAME } from "../common/auth.constants";
 
 export const TokenPayloadParam = createParamDecorator(
@@ -6,6 +6,8 @@ export const TokenPayloadParam = createParamDecorator(
         const context = ctx.switchToHttp();
         const request = context.getRequest();
 
+        console.log("TokenPayloadParam", request);
+        
         return request[REQUEST_TOKEN_PAYLOAD_NAME];
     },
 )
