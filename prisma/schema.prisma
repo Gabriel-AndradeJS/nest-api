@@ -29,6 +29,7 @@ model User {
   name          String
   email         String @unique
   passwordHash      String
+  active        Boolean @default(true)
   tasks         Task[]
 
   createdAt     DateTime? @default(now())
