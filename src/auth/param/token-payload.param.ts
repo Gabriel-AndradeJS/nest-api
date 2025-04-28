@@ -5,8 +5,6 @@ export const TokenPayloadParam = createParamDecorator(
     (data: unknown, ctx: ExecutionContext): any => {
         const context = ctx.switchToHttp();
         const request = context.getRequest();
-
-        console.log("TokenPayloadParam", request);
         
         return request[REQUEST_TOKEN_PAYLOAD_NAME];
     },
