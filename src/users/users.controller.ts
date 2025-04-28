@@ -30,11 +30,12 @@ export class UsersController {
     @UseGuards(AuthTokenGuard)
     @Patch(':id')
     updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto, @TokenPayloadParam() tokenPayload: PayloadTokenDto) {
-        return this.userService.updateUser(id, updateUserDto);
+        return this.userService.updateUser(id, updateUserDto, tokenPayload);
     }
 
+    @UseGuards(AuthTokenGuard)
     @Delete(':id')
-    deleteUser(@Param('id', ParseIntPipe) id: number) {
-        return this.userService.deleteUser(id);
+    deleteUser(@Param('id', ParseIntPipe) id: number, @TokenPayloadParam() tokenPayload: PayloadTokenDto) {
+        return this.userService.deleteUser(id, tokenPayload);
     }
 }
