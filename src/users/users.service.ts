@@ -29,6 +29,7 @@ export class UsersService {
                 id: true,
                 name: true,
                 email: true,
+                avatar: true,
             }
         });
         return users;
@@ -41,6 +42,7 @@ export class UsersService {
                 id: true,
                 name: true,
                 email: true,
+                avatar: true,
             }
         })
         if (user) return user;
@@ -115,6 +117,7 @@ export class UsersService {
                     id: true,
                     name: true,
                     email: true,
+                    avatar: true,
                 }
             });
 
