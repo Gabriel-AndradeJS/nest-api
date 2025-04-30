@@ -7,8 +7,9 @@ import { AuthTokenGuard } from 'src/auth/guard/auth-token.guard';
 import { TokenPayloadParam } from 'src/auth/param/token-payload.param';
 import { PayloadTokenDto } from 'src/auth/dto/payload-token.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import * as path from 'node:path';
+import path from 'node:path';
 import * as fs from 'node:fs/promises'
+
 
 @Controller('users')
 export class UsersController {
@@ -55,13 +56,6 @@ export class UsersController {
                 errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
             })
         ) file: Express.Multer.File) {
-        const fileExtension = path.extname(file.originalname).toLocaleLowerCase().substring(1)
-
-        const fileName = `${tokenPayload.sub}.${fileExtension}`
-        const fileLocale = path.resolve(process.cwd(), 'files', fileName)
-
-        await fs.writeFile(fileLocale, file.buffer)
-
-        return true
+        return this.userService.uploadAvatarImage(tokenPayload, file);
     }
 }
