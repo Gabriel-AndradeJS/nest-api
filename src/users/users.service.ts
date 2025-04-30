@@ -5,6 +5,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PayloadTokenDto } from 'src/auth/dto/payload-token.dto';
+import { extname, resolve } from 'path';
+import * as fs from 'node:fs/promises'
 
 @Injectable()
 export class UsersService {
@@ -80,7 +82,7 @@ export class UsersService {
 
     async updateUser(id: number, updateUserDto: UpdateUserDto, tokenPayload: PayloadTokenDto) {
         console.log(tokenPayload);
-        
+
         try {
             const findUser = await this.prisma.user.findFirst({
                 where: { id },
@@ -94,10 +96,10 @@ export class UsersService {
                 throw new HttpException('Usuario não existe!', HttpStatus.BAD_REQUEST);
             }
 
-            const dataUser: {name?: string, passwordHash?: string} = {
+            const dataUser: { name?: string, passwordHash?: string } = {
                 name: updateUserDto.name ? updateUserDto.name : findUser.name,
-            };   
-            
+            };
+
             if (updateUserDto.password) {
                 dataUser.passwordHash = await this.hashingService.hash(updateUserDto.password);
             }
@@ -144,5 +146,43 @@ export class UsersService {
         } catch (error) {
             throw new HttpException('Erro ao deletar o usuario!', HttpStatus.BAD_REQUEST);
         }
+    }
+
+    async uploadAvatarImage(tokenPayload: PayloadTokenDto, file: Express.Multer.File) {
+        try {
+            const fileExtension = extname(file.originalname)
+
+            const fileName = `${tokenPayload.sub}${fileExtension}`
+            const fileLocale = resolve(process.cwd(), 'files', fileName)
+
+            await fs.writeFile(fileLocale, file.buffer)
+
+
+            const findUser = await this.prisma.user.findFirst({
+                where: { id: tokenPayload.sub },
+            });
+
+            if (!findUser) {
+                throw new HttpException('Usuario não encontrado!', HttpStatus.NOT_FOUND);
+            }
+
+            const updateUser = await this.prisma.user.update({
+                where: { id: findUser.id },
+                data: {
+                    avatar: fileName,
+                },select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    avatar: true,
+                }
+            })
+
+            return updateUser
+
+        } catch (error) {
+            throw new HttpException('Erro ao fazer upload da imagem!', HttpStatus.BAD_REQUEST);
+        }
+
     }
 }
